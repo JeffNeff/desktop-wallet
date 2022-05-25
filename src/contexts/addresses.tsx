@@ -34,8 +34,8 @@ import {
   loadStoredAddressesMetadataOfAccount,
   storeAddressMetadataOfAccount
 } from '../utils/addresses'
-import { NetworkName } from '../utils/settings'
 import { stringToDoubleSHA215HexString } from '../utils/misc'
+import { NetworkName } from '../utils/settings'
 import { useGlobalContext } from './global'
 
 export type TransactionType = 'consolidation' | 'transfer' | 'sweep'
