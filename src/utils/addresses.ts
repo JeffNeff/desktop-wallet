@@ -17,8 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { getStorage } from '@alephium/sdk'
+import { decrypt, encrypt } from '@alephium/sdk/dist/lib/password-crypto'
 
 import { Address } from '../contexts/addresses'
+import { latestUserDataVersion } from './migration'
 
 const addressesMetadataLocalStorageKeyPrefix = 'addresses-metadata'
 
@@ -42,16 +44,21 @@ export const checkAddressValidity = (address: string) => {
 
 const constructMetadataKey = (walletName: string) => `${addressesMetadataLocalStorageKeyPrefix}-${walletName}`
 
-export const loadStoredAddressesMetadataOfAccount = (accountName: string): AddressMetadata[] => {
-  const data = localStorage.getItem(constructMetadataKey(accountName))
+export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountName: string): AddressMetadata[] => {
+  const json = localStorage.getItem(constructMetadataKey(accountName))
 
-  if (data === null) return []
-
-  return JSON.parse(data)
+  if (json === null) return []
+  const { encryptedSettings } = JSON.parse(json)
+  return JSON.parse(decrypt(mnemonic, encryptedSettings))
 }
 
-export const storeAddressMetadataOfAccount = (accountName: string, index: number, settings: AddressSettings) => {
-  const addressesMetadata = loadStoredAddressesMetadataOfAccount(accountName)
+export const storeAddressMetadataOfAccount = (
+  mnemonic: string,
+  accountName: string,
+  index: number,
+  settings: AddressSettings
+) => {
+  const addressesMetadata = loadStoredAddressesMetadataOfAccount(accountName, mnemonic)
   const existingAddressMetadata = addressesMetadata.find((data: AddressMetadata) => data.index === index)
 
   if (!existingAddressMetadata) {
@@ -63,7 +70,13 @@ export const storeAddressMetadataOfAccount = (accountName: string, index: number
     Object.assign(existingAddressMetadata, settings)
   }
   console.log(`🟠 Storing address index ${index} metadata locally`)
-  localStorage.setItem(constructMetadataKey(accountName), JSON.stringify(addressesMetadata))
+  localStorage.setItem(
+    constructMetadataKey(accountName),
+    JSON.stringify({
+      version: latestUserDataVersion,
+      encryptedSettings: encrypt(mnemonic, JSON.stringify(addressesMetadata))
+    })
+  )
 }
 
 export const deleteStoredAddressMetadataOfAccount = (accountName: string) => {
