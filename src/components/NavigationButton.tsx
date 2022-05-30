@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { ChevronRight } from 'lucide-react'
+import { FC } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styled, { css, useTheme } from 'styled-components'
 
@@ -26,7 +28,7 @@ interface ActionButtonProps {
   onClick?: () => void
 }
 
-const ActionButton = ({ Icon, label, link, onClick }: ActionButtonProps) => {
+const NavigationButton: FC<ActionButtonProps> = ({ Icon, label, link, children, onClick }) => {
   const theme = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
@@ -46,7 +48,9 @@ const ActionButton = ({ Icon, label, link, onClick }: ActionButtonProps) => {
           <Icon color={theme.font.primary} size={18} />
         </ActionIcon>
         <ActionLabel>{label}</ActionLabel>
+        {children && <ChevronRight size={16} />}
       </ActionContent>
+      <SubMenuContainer>{children}</SubMenuContainer>
     </ActionButtonContainer>
   )
 }
@@ -74,6 +78,16 @@ const ActionIcon = styled.div`
   transition: all 0.1s ease-out;
 `
 
+const SubMenuContainer = styled.div`
+  position: absolute;
+  background-color: ${({ theme }) => theme.bg.primary};
+  padding: var(--spacing-3);
+  border-radius: var(--radius-medium);
+  top: 0;
+  transform: translateX(100%);
+  opacity: 0;
+`
+
 const ActionButtonContainer = styled.div<{ isActive: boolean }>`
   display: flex;
   align-items: stretch;
@@ -82,11 +96,12 @@ const ActionButtonContainer = styled.div<{ isActive: boolean }>`
 
   &:hover {
     cursor: pointer;
-    ${ActionLabel} {
-      color: ${({ theme }) => theme.global.accent};
-    }
 
     ${ActionIcon} {
+      opacity: 1;
+    }
+
+    ${SubMenuContainer} {
       opacity: 1;
     }
   }
@@ -104,4 +119,4 @@ const ActionButtonContainer = styled.div<{ isActive: boolean }>`
     `}
 `
 
-export default ActionButton
+export default NavigationButton

@@ -20,16 +20,16 @@ import { getStorage } from '@alephium/sdk'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileCode, Layers, List, Lock, RefreshCw, Send, TerminalSquare } from 'lucide-react'
+import { FileCheck, FileCode, Layers, List, Lock, RefreshCw, Send, TerminalSquare } from 'lucide-react'
 import { FC, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styled, { useTheme } from 'styled-components'
 
-import ActionButton from '../../components/ActionButton'
 import AppHeader from '../../components/AppHeader'
 import Button from '../../components/Button'
 import InfoBox from '../../components/InfoBox'
 import Select from '../../components/Inputs/Select'
+import NavigationButton from '../../components/NavigationButton'
 import PasswordConfirmation from '../../components/PasswordConfirmation'
 import Spinner from '../../components/Spinner'
 import { useAddressesContext } from '../../contexts/addresses'
@@ -128,23 +128,29 @@ const WalletLayout: FC = ({ children }) => {
             raised
           />
         )}
-        <WalletActions>
-          <ActionsTitle>MENU</ActionsTitle>
-          <ActionButton Icon={Layers} label="Overview" link="/wallet/overview" />
-          <ActionButton Icon={List} label="Addresses" link="/wallet/addresses" />
-          <ActionButton Icon={Send} label="Send" onClick={() => openSendTxModal(SendTxModalType.TRANSFER)} />
-          <ActionButton
-            Icon={TerminalSquare}
-            label="Call Contract"
-            onClick={() => openSendTxModal(SendTxModalType.SCRIPT)}
+        <WalletNavigation>
+          <NavigationTitle>MENU</NavigationTitle>
+          <NavigationButton Icon={Layers} label="Overview" link="/wallet/overview" />
+          <NavigationButton Icon={List} label="Addresses" link="/wallet/addresses" />
+          <NavigationButton
+            Icon={Send}
+            label="Send transaction"
+            onClick={() => openSendTxModal(SendTxModalType.TRANSFER)}
           />
-          <ActionButton
-            Icon={FileCode}
-            label="Deploy Contract"
-            onClick={() => openSendTxModal(SendTxModalType.DEPLOY_CONTRACT)}
-          />
-          <ActionButton Icon={Lock} label="Lock" onClick={lockWallet} />
-        </WalletActions>
+          <NavigationButton Icon={FileCheck} label="Contracts">
+            <NavigationButton
+              Icon={TerminalSquare}
+              label="Call Contract"
+              onClick={() => openSendTxModal(SendTxModalType.SCRIPT)}
+            />
+            <NavigationButton
+              Icon={FileCode}
+              label="Deploy Contract"
+              onClick={() => openSendTxModal(SendTxModalType.DEPLOY_CONTRACT)}
+            />
+          </NavigationButton>
+          <NavigationButton Icon={Lock} label="Lock wallet" onClick={lockWallet} />
+        </WalletNavigation>
       </WalletSidebar>
       <AnimatePresence exitBeforeEnter initial={true}>
         {isSendTxModalOpen && sendTxModalType !== undefined && (
@@ -224,7 +230,7 @@ const WalletSidebar = styled.div`
   }
 `
 
-const WalletActions = styled.div`
+const WalletNavigation = styled.nav`
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -235,7 +241,7 @@ const WalletActions = styled.div`
   }
 `
 
-const ActionsTitle = styled.h3`
+const NavigationTitle = styled.h3`
   width: 100%;
   color: ${({ theme }) => theme.font.secondary};
   margin-top: 0;
