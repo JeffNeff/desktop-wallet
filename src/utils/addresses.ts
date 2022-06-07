@@ -43,7 +43,7 @@ export const checkAddressValidity = (address: string) => {
   return match[0] === address && address
 }
 
-const constructMetadataKey = (walletName: string) => `${addressesMetadataLocalStorageKeyPrefix}-${walletName}`
+export const constructMetadataKey = (walletName: string) => `${addressesMetadataLocalStorageKeyPrefix}-${walletName}`
 
 export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountName: string): AddressMetadata[] => {
   const json = localStorage.getItem(constructMetadataKey(accountName))
