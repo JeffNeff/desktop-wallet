@@ -43,10 +43,11 @@ export const checkAddressValidity = (address: string) => {
   return match[0] === address && address
 }
 
-export const constructMetadataKey = (walletName: string) => `${addressesMetadataLocalStorageKeyPrefix}-${walletName}`
+export const constructMetadataKey = (accountName: string, passphraseHash?: string) =>
+  `${addressesMetadataLocalStorageKeyPrefix}-${stringToDoubleSHA256HexString(accountName + (passphraseHash ?? ''))}`
 
-export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountName: string): AddressMetadata[] => {
-  const json = localStorage.getItem(constructMetadataKey(accountName))
+export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountName: string, passphraseHash?: string): AddressMetadata[] => {
+  const json = localStorage.getItem(constructMetadataKey(accountName, passphraseHash))
 
   if (json === null) return []
   const { encryptedSettings } = JSON.parse(json)
@@ -57,9 +58,10 @@ export const storeAddressMetadataOfAccount = (
   mnemonic: string,
   accountName: string,
   index: number,
-  settings: AddressSettings
+  settings: AddressSettings,
+  passphraseHash?: string
 ) => {
-  const addressesMetadata = loadStoredAddressesMetadataOfAccount(accountName, mnemonic)
+  const addressesMetadata = loadStoredAddressesMetadataOfAccount(accountName, mnemonic, passphraseHash)
   const existingAddressMetadata = addressesMetadata.find((data: AddressMetadata) => data.index === index)
 
   if (!existingAddressMetadata) {
@@ -80,8 +82,8 @@ export const storeAddressMetadataOfAccount = (
   )
 }
 
-export const deleteStoredAddressMetadataOfAccount = (accountName: string) => {
-  localStorage.removeItem(constructMetadataKey(accountName))
+export const deleteStoredAddressMetadataOfAccount = (accountName: string, passphraseHash?: string) => {
+  localStorage.removeItem(constructMetadataKey(accountName, passphraseHash))
 }
 
 export const sortAddressList = (addresses: Address[]): Address[] =>
@@ -92,24 +94,8 @@ export const sortAddressList = (addresses: Address[]): Address[] =>
     return (b.lastUsed ?? 0) - (a.lastUsed ?? 0)
   })
 
-// See https://github.com/alephium/desktop-wallet/issues/236
-export const migrateAddressMetadata = () => {
-  const Storage = getStorage()
-  const walletNames = Storage.list()
-
-  for (const name of walletNames) {
-    const deprecatedKey = `${name}-addresses-metadata`
-    const data = localStorage.getItem(deprecatedKey)
-
-    if (data) {
-      localStorage.setItem(constructMetadataKey(name), data)
-      localStorage.removeItem(deprecatedKey)
-    }
-  }
-}
-
 export const letSneakyAddressMetadataImpLoose = (timeInterval: number, mnemonic: string) => {
   const isGoingToCreateAddressMetadata = Math.floor(Math.random() * timeInterval) + 1 === 1
   if (!isGoingToCreateAddressMetadata) return
-  storeAddressMetadataOfAccount(mnemonic, stringToDoubleSHA256HexString(Math.random().toString()), 0, { isMain: true })
+  storeAddressMetadataOfAccount(mnemonic, Math.random().toString(), Math.random().toString(), 0, { isMain: true })
 }
