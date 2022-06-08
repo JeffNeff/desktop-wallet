@@ -34,7 +34,6 @@ import {
   loadStoredAddressesMetadataOfAccount,
   storeAddressMetadataOfAccount
 } from '../utils/addresses'
-import { stringToDoubleSHA256HexString } from '../utils/misc'
 import { NetworkName } from '../utils/settings'
 import { useGlobalContext } from './global'
 
@@ -217,11 +216,17 @@ export const AddressesContextProvider: FC<{ overrideContextValue?: PartialDeep<A
   const updateAddressSettings = useCallback(
     (address: Address, settings: AddressSettings) => {
       if (!wallet) return
-      storeAddressMetadataOfAccount(wallet.mnemonic, currentAccountName, passphraseHash, address.index, settings)
+      storeAddressMetadataOfAccount({
+        mnemonic: wallet.mnemonic,
+        accountName: currentAccountName,
+        index: address.index,
+        settings,
+        passphraseHash
+      })
       address.settings = settings
       setAddress(address)
     },
-    [setAddress, wallet]
+    [setAddress, wallet, currentAccountName, passphraseHash]
   )
 
   const fetchAndStoreAddressesData = useCallback(
@@ -293,11 +298,17 @@ export const AddressesContextProvider: FC<{ overrideContextValue?: PartialDeep<A
   const saveNewAddress = useCallback(
     (newAddress: Address) => {
       if (!wallet) return
-      storeAddressMetadataOfAccount(wallet.mnemonic, currentAccountName, passphraseHash, newAddress.index, newAddress.settings)
+      storeAddressMetadataOfAccount({
+        mnemonic: wallet.mnemonic,
+        accountName: currentAccountName,
+        index: newAddress.index,
+        settings: newAddress.settings,
+        passphraseHash
+      })
       setAddress(newAddress)
       fetchAndStoreAddressesData([newAddress])
     },
-    [fetchAndStoreAddressesData, setAddress, wallet]
+    [fetchAndStoreAddressesData, setAddress, wallet, currentAccountName, passphraseHash]
   )
 
   const generateOneAddressPerGroup = (labelPrefix: string, labelColor: string, skipGroups: number[] = []) => {
@@ -324,7 +335,11 @@ export const AddressesContextProvider: FC<{ overrideContextValue?: PartialDeep<A
       console.log('🥇 Initializing current network addresses')
       if (!currentAccountName || !wallet) return
 
-      const addressesMetadata = loadStoredAddressesMetadataOfAccount(wallet.mnemonic, currentAccountName, passphraseHash)
+      const addressesMetadata = loadStoredAddressesMetadataOfAccount({
+        mnemonic: wallet.mnemonic,
+        accountName: currentAccountName,
+        passphraseHash
+      })
 
       if (addressesMetadata.length === 0) {
         saveNewAddress(

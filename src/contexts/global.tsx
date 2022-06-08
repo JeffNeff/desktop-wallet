@@ -122,7 +122,7 @@ export const GlobalContextProvider: FC<{ overrideContextValue?: PartialDeep<Glob
   }
 
   const lockWallet = () => {
-    setPassphraseDoubleHashed('')
+    setPassphraseHash('')
     setCurrentAccountName('')
     setWallet(undefined)
   }

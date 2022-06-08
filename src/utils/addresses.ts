@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { getStorage } from '@alephium/sdk'
 import { decrypt, encrypt } from '@alephium/sdk/dist/lib/password-crypto'
 
 import { Address } from '../contexts/addresses'
@@ -46,7 +45,17 @@ export const checkAddressValidity = (address: string) => {
 export const constructMetadataKey = (accountName: string, passphraseHash?: string) =>
   `${addressesMetadataLocalStorageKeyPrefix}-${stringToDoubleSHA256HexString(accountName + (passphraseHash ?? ''))}`
 
-export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountName: string, passphraseHash?: string): AddressMetadata[] => {
+interface AddressMetadataKeyProperties {
+  mnemonic: string
+  accountName: string
+  passphraseHash?: string
+}
+
+export const loadStoredAddressesMetadataOfAccount = ({
+  mnemonic,
+  accountName,
+  passphraseHash
+}: AddressMetadataKeyProperties): AddressMetadata[] => {
   const json = localStorage.getItem(constructMetadataKey(accountName, passphraseHash))
 
   if (json === null) return []
@@ -54,14 +63,14 @@ export const loadStoredAddressesMetadataOfAccount = (mnemonic: string, accountNa
   return JSON.parse(decrypt(mnemonic, encryptedSettings))
 }
 
-export const storeAddressMetadataOfAccount = (
-  mnemonic: string,
-  accountName: string,
-  index: number,
-  settings: AddressSettings,
-  passphraseHash?: string
-) => {
-  const addressesMetadata = loadStoredAddressesMetadataOfAccount(accountName, mnemonic, passphraseHash)
+export const storeAddressMetadataOfAccount = ({
+  mnemonic,
+  accountName,
+  index,
+  settings,
+  passphraseHash
+}: AddressMetadataKeyProperties & { index: number; settings: AddressSettings }) => {
+  const addressesMetadata = loadStoredAddressesMetadataOfAccount({ mnemonic, accountName, passphraseHash })
   const existingAddressMetadata = addressesMetadata.find((data: AddressMetadata) => data.index === index)
 
   if (!existingAddressMetadata) {
@@ -97,5 +106,8 @@ export const sortAddressList = (addresses: Address[]): Address[] =>
 export const letSneakyAddressMetadataImpLoose = (timeInterval: number, mnemonic: string) => {
   const isGoingToCreateAddressMetadata = Math.floor(Math.random() * timeInterval) + 1 === 1
   if (!isGoingToCreateAddressMetadata) return
-  storeAddressMetadataOfAccount(mnemonic, Math.random().toString(), Math.random().toString(), 0, { isMain: true })
+
+  const accountName = Math.random().toString()
+  const passphraseHash = stringToDoubleSHA256HexString(Math.random().toString())
+  storeAddressMetadataOfAccount({ mnemonic, accountName, index: 0, settings: { isMain: true }, passphraseHash })
 }
