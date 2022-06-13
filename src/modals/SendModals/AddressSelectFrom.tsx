@@ -16,14 +16,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { convertAlphToSet } from '@alephium/sdk'
-
+import AddressSelect from '../../components/Inputs/AddressSelect'
 import { Address } from '../../contexts/addresses'
 
-export const expectedAmount = (data: { fromAddress: Address; alphAmount?: string }, fees: bigint): bigint => {
-  const amountInSet = data.alphAmount ? convertAlphToSet(data.alphAmount) : 0n
-  const amountIncludingFees = amountInSet + fees
-  const exceededBy = amountIncludingFees - data.fromAddress.availableBalance
-  const expectedAmount = exceededBy > 0 ? data.fromAddress.availableBalance - exceededBy : amountInSet
-  return expectedAmount
+export interface AddressSelectFromProps {
+  addresses: Address[]
+  defaultAddress: Address
+  onChange: (v: Address) => void
 }
+
+const AddressSelectFrom = ({ addresses, defaultAddress, onChange }: AddressSelectFromProps) => {
+  const updatedInitialAddress = addresses.find((a) => a.hash === defaultAddress.hash) ?? defaultAddress
+  return (
+    <AddressSelect
+      label="From address"
+      title="Select the address to send funds from."
+      options={addresses}
+      defaultAddress={updatedInitialAddress}
+      onAddressChange={onChange}
+      id="from-address"
+      hideEmptyAvailableBalance
+    />
+  )
+}
+
+export default AddressSelectFrom
